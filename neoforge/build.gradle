@@ -1,0 +1,102 @@
+import groovy.json.JsonOutput
+
+
+plugins {
+    id 'net.neoforged.moddev' version '2.0.148' apply false
+}
+
+def versions = [
+        'v1_21_1': [mc: '1.21.1', neo: '21.1.264', java: 21, state: false, neoRange: '[21.1,)', mcRange: '[1.21.1,1.21.2)'],
+        'v1_21_4': [mc: '1.21.4', neo: '21.4.161', java: 21, state: true, neoRange: '[21.4,)', mcRange: '[1.21.4,1.21.5)'],
+        'v1_21_8': [mc: '1.21.8', neo: '21.8.52', java: 21, state: true, neoRange: '[21.8,)', mcRange: '[1.21.8,1.21.9)'],
+        'v26_1_2': [mc: '26.1.2', neo: '26.1.2.122', java: 25, state: true, neoRange: '[26.1,)', mcRange: '[26.1,26.2)'],
+        'v26_2_0': [mc: '26.2', neo: '26.2.0.93', java: 25, state: true, neoRange: '[26.2,)', mcRange: '[26.2,26.3)'],
+        'v26_3_0': [mc: '26.3', neo: '26.3.0.95', java: 25, state: true, neoRange: '[26.3,)', mcRange: '[26.3,26.4)']
+]
+
+subprojects {
+    def cfg = versions[project.name]
+    if (cfg == null) return
+    apply plugin: 'net.neoforged.moddev'
+
+    group = 'org.hxcn.excnies.sneakwalk'
+    version = '1.0.0'
+    base.archivesName = "sneakwalk-neoforge-${cfg.mc}"
+
+    repositories {
+        mavenCentral()
+        maven { url = 'https://maven.neoforged.net/releases/' }
+    }
+
+    neoForge {
+        version = cfg.neo
+        runs {
+            client {
+                client()
+            }
+        }
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDirs = [
+                        rootProject.file('common/src/main/java'),
+                        rootProject.file('common-modern/src/main/java'),
+                        rootProject.file(cfg.state
+                                ? 'common-state/src/main/java'
+                                : 'common-entity/src/main/java'),
+                        rootProject.file('common-sword-component/src/main/java'),
+                        rootProject.file('neoforge-common/src/main/java')
+                ]
+            }
+        }
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(cfg.java as int)
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = 17
+    }
+
+    processResources {
+        inputs.property 'version', project.version
+        inputs.property 'mcVersion', cfg.mc
+        inputs.property 'neoVersion', cfg.neo
+        inputs.property 'neoRange', cfg.neoRange
+        inputs.property 'mcRange', cfg.mcRange
+
+        from(rootProject.file('templates/neoforge.mods.toml')) {
+            expand(
+                    version: project.version,
+                    mc_version: cfg.mc,
+                    neo_version: cfg.neo,
+                    neo_range: cfg.neoRange,
+                    mc_range: cfg.mcRange
+            )
+            rename { 'META-INF/neoforge.mods.toml' }
+        }
+
+        doLast {
+            def classes = ['MixinCamera', 'MixinLivingEntitySwing']
+            classes << (cfg.state ? 'MixinHumanoidModelState' : 'MixinPlayerModelEntity')
+            classes << 'MixinItemStackSwordBlock'
+            def config = [
+                    required          : true,
+                    minVersion        : '0.8',
+                    package           : 'org.hxcn.excnies.sneakwalk.mixin',
+                    compatibilityLevel: 'JAVA_17',
+                    client            : classes,
+                    injectors         : [defaultRequire: 1]
+            ]
+            def target = file("${buildDir}/resources/main/sneakwalk.mixins.json")
+            target.parentFile.mkdirs()
+            target.text = JsonOutput.prettyPrint(JsonOutput.toJson(config))
+        }
+    }
+}

@@ -1,0 +1,13 @@
+{
+  "mappings": {
+    "org/hxcn/excnies/sneakwalk/mixin/MixinModelBiped": {
+      "setRotationAngles": "Lnet/minecraft/client/model/ModelBiped;func_78087_a(FFFFFFLnet/minecraft/entity/Entity;)V",
+      "bipedLeftLeg": "field_178722_k:Lnet/minecraft/client/model/ModelRenderer;",
+      "bipedRightLeg": "field_178721_j:Lnet/minecraft/client/model/ModelRenderer;",
+      "bipedLeftArm": "field_178724_i:Lnet/minecraft/client/model/ModelRenderer;",
+      "bipedRightArm": "field_178723_h:Lnet/minecraft/client/model/ModelRenderer;",
+      "Lnet/minecraft/client/model/ModelRenderer;rotateAngleX:F": "Lnet/minecraft/client/model/ModelRenderer;field_78795_f:F",
+      "Lnet/minecraft/entity/player/EntityPlayer;isSneaking()Z": "Lnet/minecraft/entity/player/EntityPlayer;func_70093_af()Z"
+    }
+  }
+}

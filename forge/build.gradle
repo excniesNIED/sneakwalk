@@ -1,0 +1,99 @@
+import groovy.json.JsonOutput
+
+
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url = 'https://maven.minecraftforge.net/' }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:6.0.54'
+    }
+}
+
+def versions = [
+        'v1_20_4': [mc: '1.20.4', forge: '49.2.13', java: 17, loaderRange: '[49,)', mcRange: '[1.20.4,1.20.5)']
+]
+
+subprojects {
+    def cfg = versions[project.name]
+    if (cfg == null) return
+    apply plugin: 'net.minecraftforge.gradle'
+
+    group = 'org.hxcn.excnies.sneakwalk'
+    version = '1.0.0'
+    base.archivesName = "sneakwalk-forge-${cfg.mc}"
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(cfg.java as int)
+        }
+    }
+
+    minecraft {
+        mappings channel: 'official', version: cfg.mc
+        runs {
+            client {
+                workingDirectory project.file('run')
+            }
+        }
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDirs = [
+                        rootProject.file('common/src/main/java'),
+                        rootProject.file('common-modern/src/main/java'),
+                        rootProject.file('common-entity/src/main/java'),
+                        rootProject.file('common-sword-old/src/main/java'),
+                        rootProject.file('forge-common/src/main/java')
+                ]
+            }
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = 17
+    }
+
+    processResources {
+        inputs.property 'version', project.version
+        inputs.property 'mcVersion', cfg.mc
+        inputs.property 'forgeVersion', cfg.forge
+        inputs.property 'loaderRange', cfg.loaderRange
+        inputs.property 'mcRange', cfg.mcRange
+
+        from(rootProject.file('templates/mods.toml')) {
+            expand(
+                    version: project.version,
+                    mc_version: cfg.mc,
+                    forge_version: cfg.forge,
+                    loader_range: cfg.loaderRange,
+                    mc_range: cfg.mcRange
+            )
+            rename { 'META-INF/mods.toml' }
+        }
+
+        doLast {
+            def config = [
+                    required          : true,
+                    minVersion        : '0.8',
+                    package           : 'org.hxcn.excnies.sneakwalk.mixin',
+                    compatibilityLevel: 'JAVA_17',
+                    client            : ['MixinPlayerModelEntity', 'MixinCamera', 'MixinLivingEntitySwing', 'MixinItemSwordBlockOld'],
+                    injectors         : [defaultRequire: 1]
+            ]
+            def target = file("${buildDir}/resources/main/sneakwalk.mixins.json")
+            target.parentFile.mkdirs()
+            target.text = JsonOutput.prettyPrint(JsonOutput.toJson(config))
+        }
+    }
+
+    jar {
+        manifest {
+            attributes 'MixinConfigs': 'sneakwalk.mixins.json'
+        }
+    }
+}

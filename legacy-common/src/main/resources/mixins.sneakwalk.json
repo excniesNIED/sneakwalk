@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.7",
+  "package": "org.hxcn.excnies.sneakwalk.mixin",
+  "refmap": "sneakwalk.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "client": [
+    "MixinModelBiped"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

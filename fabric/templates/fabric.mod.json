@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "sneakwalk",
+  "version": "${version}",
+  "name": "Sneak Walk",
+  "description": "Client-side third-person crouch-walk pose override with GermMod and EC Java presets.",
+  "authors": ["hxcn"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {},
+  "mixins": [
+    {
+      "config": "sneakwalk.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "${minecraft_version}"
+  }
+}

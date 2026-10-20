@@ -1,0 +1,14 @@
+pluginManagement {
+    repositories {
+        maven { url = 'https://maven.neoforged.net/releases/' }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'sneakwalk-neoforge'
+
+['v1_21_1','v1_21_4','v1_21_8','v26_1_2','v26_2_0','v26_3_0'].each { n ->
+    include(n)
+    project(":${n}").projectDir = file(n)
+}

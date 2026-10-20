@@ -1,0 +1,6 @@
+rootProject.name = 'sneakwalk-forge-fg5'
+
+['v1_18_2', 'v1_20_1'].each { n ->
+    include(n)
+    project(":${n}").projectDir = file(n)
+}

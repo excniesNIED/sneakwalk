@@ -1,0 +1,104 @@
+import groovy.json.JsonOutput
+
+
+plugins {
+    id 'fabric-loom' version '1.19.2' apply false
+}
+
+def versions = [
+        'v1_18_2' : [mc: '1.18.2', loader: '0.20.1', java: 17, state: false, sword: 'old'],
+        'v1_20_1' : [mc: '1.20.1', loader: '0.20.1', java: 17, state: false, sword: 'old'],
+        'v1_20_4' : [mc: '1.20.4', loader: '0.20.1', java: 17, state: false, sword: 'old'],
+        'v1_21_1' : [mc: '1.21.1', loader: '0.20.1', java: 21, state: false, sword: 'component'],
+        'v1_21_4' : [mc: '1.21.4', loader: '0.20.1', java: 21, state: true, sword: 'component'],
+        'v1_21_8' : [mc: '1.21.8', loader: '0.20.1', java: 21, state: true, sword: 'component'],
+        'v26_1_2' : [mc: '26.1.2', loader: '0.20.1', java: 25, state: true, sword: 'component'],
+        'v26_2_0' : [mc: '26.2', loader: '0.20.1', java: 25, state: true, sword: 'component'],
+        'v26_3_0' : [mc: '26.3', loader: '0.20.1', java: 25, state: true, sword: 'component']
+]
+
+subprojects {
+    def cfg = versions[project.name]
+    if (cfg == null) return
+    apply plugin: 'fabric-loom'
+
+    group = 'org.hxcn.excnies.sneakwalk'
+    version = '1.0.0'
+    base.archivesName = "sneakwalk-fabric-${cfg.mc}"
+
+    repositories {
+        mavenCentral()
+        maven { url = 'https://maven.fabricmc.net/' }
+    }
+
+    dependencies {
+        minecraft "com.mojang:minecraft:${cfg.mc}"
+        mappings loom.officialMojangMappings()
+        modImplementation "net.fabricmc:fabric-loader:${cfg.loader}"
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDirs = [
+                        rootProject.file('common/src/main/java'),
+                        rootProject.file('common-modern/src/main/java'),
+                        rootProject.file(cfg.state
+                                ? 'common-state/src/main/java'
+                                : 'common-entity/src/main/java'),
+                        rootProject.file(cfg.sword == 'old'
+                                ? 'common-sword-old/src/main/java'
+                                : 'common-sword-component/src/main/java')
+                ]
+            }
+        }
+    }
+
+    loom {
+        mixin {
+            useLegacyMixinAp = true
+            defaultRefmapName = 'sneakwalk.refmap.json'
+        }
+        runs {
+            client {
+                client()
+            }
+        }
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(cfg.java as int)
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = 17
+    }
+
+    processResources {
+        inputs.property 'version', project.version
+        inputs.property 'mcVersion', cfg.mc
+
+        from(rootProject.file('templates/fabric.mod.json')) {
+            expand(version: project.version, minecraft_version: cfg.mc)
+        }
+
+        doLast {
+            def classes = ['MixinCamera', 'MixinLivingEntitySwing']
+            classes << (cfg.state ? 'MixinHumanoidModelState' : 'MixinPlayerModelEntity')
+            classes << (cfg.sword == 'old' ? 'MixinItemSwordBlockOld' : 'MixinItemStackSwordBlock')
+            def config = [
+                    required          : true,
+                    minVersion        : '0.8',
+                    package           : 'org.hxcn.excnies.sneakwalk.mixin',
+                    refmap            : 'sneakwalk.refmap.json',
+                    compatibilityLevel: 'JAVA_17',
+                    client            : classes,
+                    injectors         : [defaultRequire: 1]
+            ]
+            file("${buildDir}/resources/main/sneakwalk.mixins.json").text = JsonOutput.prettyPrint(JsonOutput.toJson(config))
+        }
+    }
+}

@@ -1,0 +1,29 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+
+[[mods]]
+modId = "sneakwalk"
+version = "${version}"
+displayName = "Sneak Walk"
+authors = "hxcn"
+description = '''
+Client-side third-person crouch-walk pose override with GermMod and EC Java presets.
+'''
+
+[[mixins]]
+config = "sneakwalk.mixins.json"
+
+[[dependencies.sneakwalk]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neo_range}"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.sneakwalk]]
+modId = "minecraft"
+type = "required"
+versionRange = "${mc_range}"
+ordering = "NONE"
+side = "CLIENT"

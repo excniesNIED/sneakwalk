@@ -1,0 +1,16 @@
+[
+  {
+    "modid": "sneakwalk",
+    "name": "Sneak Walk",
+    "description": "Client-side crouch-walk pose override (GermMod / EC Java standards).",
+    "version": "1.0.0",
+    "mcversion": "1.8.9",
+    "url": "",
+    "updateUrl": "",
+    "authorList": ["hxcn"],
+    "credits": "GermMod-Hyt / OMGClient / EaseCation research",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
